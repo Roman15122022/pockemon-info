@@ -31,7 +31,11 @@ const App = () => {
     >
       <AppHeader />
 
-      <Container maxWidth={APP_CONTAINER_MAX_WIDTH} component="main" sx={{ py: APP_MAIN_PADDING_Y }}>
+      <Container
+        maxWidth={APP_CONTAINER_MAX_WIDTH}
+        component="main"
+        sx={{ py: APP_MAIN_PADDING_Y }}
+      >
         <Stack spacing={APP_STACK_SPACING}>
           <ControlsBar
             searchValue={catalog.searchValue}

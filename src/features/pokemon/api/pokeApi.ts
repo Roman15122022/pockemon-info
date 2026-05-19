@@ -1,9 +1,6 @@
 import axios from 'axios';
 import { POKE_API_BASE_URL, API_TIMEOUT_MS } from '../../../shared/constants/api';
-import {
-  EXCLUDED_POKEMON_TYPES,
-  POKEMON_PAGE_SIZE,
-} from '../../../shared/constants/pokemon';
+import { EXCLUDED_POKEMON_TYPES, POKEMON_PAGE_SIZE } from '../../../shared/constants/pokemon';
 import { getPageOffset } from '../../../shared/utils/pagination';
 import type {
   NamedApiResource,

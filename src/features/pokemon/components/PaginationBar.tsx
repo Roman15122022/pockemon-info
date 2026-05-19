@@ -1,11 +1,7 @@
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import {
-  EMPTY_COUNT,
-  FIRST_PAGE,
-  POKEMON_PAGE_SIZE,
-} from '../../../shared/constants/pokemon';
+import { EMPTY_COUNT, FIRST_PAGE, POKEMON_PAGE_SIZE } from '../../../shared/constants/pokemon';
 import { FONT_WEIGHT_BOLD } from '../../../shared/constants/ui';
 import { getTotalPages } from '../../../shared/utils/pagination';
 

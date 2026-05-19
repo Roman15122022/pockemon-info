@@ -31,12 +31,7 @@ type PokemonCardProps = {
   onToggleFavorite: (pokemon: Pokemon) => void;
 };
 
-export const PokemonCard = ({
-  pokemon,
-  favorite,
-  onOpen,
-  onToggleFavorite,
-}: PokemonCardProps) => {
+export const PokemonCard = ({ pokemon, favorite, onOpen, onToggleFavorite }: PokemonCardProps) => {
   const pokemonName = formatPokemonName(pokemon.name);
 
   const handleFavoriteClick = (event: MouseEvent<HTMLButtonElement>) => {

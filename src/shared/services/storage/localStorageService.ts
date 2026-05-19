@@ -1,9 +1,5 @@
 export type JsonStorageService = {
-  read: <TValue>(
-    key: string,
-    fallback: TValue,
-    normalize: (value: unknown) => TValue,
-  ) => TValue;
+  read: <TValue>(key: string, fallback: TValue, normalize: (value: unknown) => TValue) => TValue;
   write: <TValue>(key: string, value: TValue) => void;
   remove: (key: string) => void;
 };

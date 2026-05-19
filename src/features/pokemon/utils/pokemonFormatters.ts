@@ -5,7 +5,8 @@ import {
 } from '../../../shared/constants/pokemon';
 import type { Pokemon } from '../types/pokemon';
 
-export const formatPokemonId = (id: number) => `#${String(id).padStart(POKEMON_ID_PAD_LENGTH, '0')}`;
+export const formatPokemonId = (id: number) =>
+  `#${String(id).padStart(POKEMON_ID_PAD_LENGTH, '0')}`;
 
 export const formatPokemonName = (name: string) =>
   name

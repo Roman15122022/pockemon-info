@@ -11,11 +11,7 @@ const normalizeFavoriteIds = (value: unknown) => {
     return [];
   }
 
-  return Array.from(
-    new Set(
-      value.filter((id): id is number => Number.isInteger(id) && id > 0),
-    ),
-  );
+  return Array.from(new Set(value.filter((id): id is number => Number.isInteger(id) && id > 0)));
 };
 
 export const favoritesStorageService: FavoritesStorageService = {

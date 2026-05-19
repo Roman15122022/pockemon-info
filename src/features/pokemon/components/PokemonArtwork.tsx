@@ -1,8 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import {
-  FONT_WEIGHT_BOLD,
-  POKEMON_IMAGE_MAX_WIDTH,
-} from '../../../shared/constants/ui';
+import { FONT_WEIGHT_BOLD, POKEMON_IMAGE_MAX_WIDTH } from '../../../shared/constants/ui';
 
 type PokemonArtworkProps = {
   imageUrl: string | null;
@@ -11,12 +8,7 @@ type PokemonArtworkProps = {
   maxHeight: number;
 };
 
-export const PokemonArtwork = ({
-  imageUrl,
-  name,
-  height,
-  maxHeight,
-}: PokemonArtworkProps) => (
+export const PokemonArtwork = ({ imageUrl, name, height, maxHeight }: PokemonArtworkProps) => (
   <Box
     sx={{
       display: 'grid',

@@ -23,11 +23,7 @@ import {
   FONT_WEIGHT_EXTRA_BOLD,
 } from '../../../shared/constants/ui';
 import type { Pokemon } from '../types/pokemon';
-import {
-  formatPokemonId,
-  formatPokemonName,
-  getPokemonImage,
-} from '../utils/pokemonFormatters';
+import { formatPokemonId, formatPokemonName, getPokemonImage } from '../utils/pokemonFormatters';
 import { PokemonArtwork } from './PokemonArtwork';
 import { PokemonMetricSummary } from './PokemonMetricSummary';
 import { StatProgress } from './StatProgress';
