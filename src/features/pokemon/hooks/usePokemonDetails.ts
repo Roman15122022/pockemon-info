@@ -1,39 +1,39 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useReducer } from 'react';
 import { fetchPokemonByNameOrId } from '../api/pokeApi';
 import { POKEMON_MESSAGES } from '../constants/messages';
 import type { Pokemon } from '../types/pokemon';
+import {
+  initialPokemonDetailsState,
+  POKEMON_DETAILS_ACTION,
+  pokemonDetailsReducer,
+} from './pokemonDetailsReducer';
 
 export const usePokemonDetails = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [detailsPokemon, setDetailsPokemon] = useState<Pokemon | null>(null);
-  const [detailsLoading, setDetailsLoading] = useState(false);
-  const [detailsError, setDetailsError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(pokemonDetailsReducer, initialPokemonDetailsState);
 
   const openDetails = useCallback(async (targetPokemon: Pokemon) => {
-    setDrawerOpen(true);
-    setDetailsPokemon(null);
-    setDetailsError(null);
-    setDetailsLoading(true);
+    dispatch({ type: POKEMON_DETAILS_ACTION.open });
 
     try {
       const freshPokemon = await fetchPokemonByNameOrId(targetPokemon.id);
-      setDetailsPokemon(freshPokemon);
+      dispatch({
+        type: POKEMON_DETAILS_ACTION.success,
+        pokemon: freshPokemon,
+      });
     } catch {
-      setDetailsError(POKEMON_MESSAGES.detailsLoadError);
-    } finally {
-      setDetailsLoading(false);
+      dispatch({
+        type: POKEMON_DETAILS_ACTION.error,
+        message: POKEMON_MESSAGES.detailsLoadError,
+      });
     }
   }, []);
 
   const closeDetails = () => {
-    setDrawerOpen(false);
+    dispatch({ type: POKEMON_DETAILS_ACTION.close });
   };
 
   return {
-    drawerOpen,
-    detailsPokemon,
-    detailsLoading,
-    detailsError,
+    ...state,
     openDetails,
     closeDetails,
   };

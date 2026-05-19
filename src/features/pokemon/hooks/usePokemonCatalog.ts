@@ -1,11 +1,6 @@
 import type { FormEvent } from 'react';
-import { useEffect, useState } from 'react';
-import {
-  EMPTY_COUNT,
-  FIRST_PAGE,
-  PAGE_STEP,
-  SINGLE_RESULT_COUNT,
-} from '../../../shared/constants/pokemon';
+import { useCallback, useEffect, useReducer } from 'react';
+import { EMPTY_COUNT } from '../../../shared/constants/pokemon';
 import { getTotalPages } from '../../../shared/utils/pagination';
 import {
   fetchPokemonByNameOrId,
@@ -14,48 +9,37 @@ import {
   fetchPokemonTypes,
 } from '../api/pokeApi';
 import { POKEMON_MESSAGES } from '../constants/messages';
-import type { NamedApiResource, Pokemon } from '../types/pokemon';
+import type { Pokemon } from '../types/pokemon';
+import {
+  initialPokemonCatalogState,
+  pokemonCatalogActions,
+  pokemonCatalogReducer,
+} from './pokemonCatalogReducer';
 
 type UsePokemonCatalogParams = {
   onPokemonFound: (pokemon: Pokemon) => Promise<void> | void;
 };
 
 export const usePokemonCatalog = ({ onPokemonFound }: UsePokemonCatalogParams) => {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
-  const [types, setTypes] = useState<NamedApiResource[]>([]);
-  const [searchValue, setSearchValue] = useState('');
-  const [submittedSearch, setSubmittedSearch] = useState('');
-  const [selectedType, setSelectedType] = useState('');
-  const [page, setPage] = useState(FIRST_PAGE);
-  const [totalCount, setTotalCount] = useState(EMPTY_COUNT);
-  const [loading, setLoading] = useState(true);
-  const [loadingTypes, setLoadingTypes] = useState(true);
-  const [listError, setListError] = useState<string | null>(null);
-  const [typeError, setTypeError] = useState<string | null>(null);
-
-  const searchMode = submittedSearch.trim().length > EMPTY_COUNT;
-  const totalPages = getTotalPages(totalCount);
+  const [state, dispatch] = useReducer(pokemonCatalogReducer, initialPokemonCatalogState);
+  const searchMode = state.submittedSearch.trim().length > EMPTY_COUNT;
+  const totalPages = getTotalPages(state.totalCount);
 
   useEffect(() => {
     let active = true;
 
     const loadTypes = async () => {
-      setLoadingTypes(true);
-      setTypeError(null);
+      dispatch(pokemonCatalogActions.startTypesLoading());
 
       try {
         const nextTypes = await fetchPokemonTypes();
 
         if (active) {
-          setTypes(nextTypes);
+          dispatch(pokemonCatalogActions.loadTypesSuccess(nextTypes));
         }
       } catch {
         if (active) {
-          setTypeError(POKEMON_MESSAGES.typesLoadError);
-        }
-      } finally {
-        if (active) {
-          setLoadingTypes(false);
+          dispatch(pokemonCatalogActions.loadTypesError(POKEMON_MESSAGES.typesLoadError));
         }
       }
     };
@@ -75,27 +59,19 @@ export const usePokemonCatalog = ({ onPokemonFound }: UsePokemonCatalogParams) =
     let active = true;
 
     const loadPokemon = async () => {
-      setLoading(true);
-      setListError(null);
+      dispatch(pokemonCatalogActions.startListLoading());
 
       try {
-        const result = selectedType
-          ? await fetchPokemonByType(selectedType, page)
-          : await fetchPokemonListPage(page);
+        const result = state.selectedType
+          ? await fetchPokemonByType(state.selectedType, state.page)
+          : await fetchPokemonListPage(state.page);
 
         if (active) {
-          setPokemon(result.items);
-          setTotalCount(result.totalCount);
+          dispatch(pokemonCatalogActions.loadListSuccess(result.items, result.totalCount));
         }
       } catch {
         if (active) {
-          setPokemon([]);
-          setTotalCount(EMPTY_COUNT);
-          setListError(POKEMON_MESSAGES.listLoadError);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
+          dispatch(pokemonCatalogActions.loadListError(POKEMON_MESSAGES.listLoadError));
         }
       }
     };
@@ -105,76 +81,57 @@ export const usePokemonCatalog = ({ onPokemonFound }: UsePokemonCatalogParams) =
     return () => {
       active = false;
     };
-  }, [page, searchMode, selectedType]);
+  }, [searchMode, state.page, state.selectedType]);
 
-  const handleSearchSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const setSearchValue = useCallback((value: string) => {
+    dispatch(pokemonCatalogActions.setSearchValue(value));
+  }, []);
 
-    const query = searchValue.trim().toLowerCase();
+  const handleSearchSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
 
-    if (!query) {
-      setSubmittedSearch('');
-      setSelectedType('');
-      setPage(FIRST_PAGE);
-      setListError(null);
-      return;
-    }
+      const query = state.searchValue.trim().toLowerCase();
 
-    setLoading(true);
-    setListError(null);
-    setPage(FIRST_PAGE);
-    setSelectedType('');
-    setSubmittedSearch(query);
+      if (!query) {
+        dispatch(pokemonCatalogActions.submitEmptySearch());
+        return;
+      }
 
-    try {
-      const foundPokemon = await fetchPokemonByNameOrId(query);
-      setPokemon([foundPokemon]);
-      setTotalCount(SINGLE_RESULT_COUNT);
+      dispatch(pokemonCatalogActions.startSearch(query));
+
+      let foundPokemon: Pokemon;
+      try {
+        foundPokemon = await fetchPokemonByNameOrId(query);
+      } catch {
+        dispatch(pokemonCatalogActions.searchError(POKEMON_MESSAGES.notFound(query)));
+        return;
+      }
+
+      dispatch(pokemonCatalogActions.searchSuccess(foundPokemon));
       await onPokemonFound(foundPokemon);
-    } catch {
-      setPokemon([]);
-      setTotalCount(EMPTY_COUNT);
-      setListError(POKEMON_MESSAGES.notFound(query));
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [onPokemonFound, state.searchValue],
+  );
 
-  const handleTypeChange = (type: string) => {
-    setSelectedType(type);
-    setSearchValue('');
-    setSubmittedSearch('');
-    setListError(null);
-    setPage(FIRST_PAGE);
-  };
+  const handleTypeChange = useCallback((type: string) => {
+    dispatch(pokemonCatalogActions.changeType(type));
+  }, []);
 
-  const handleReset = () => {
-    setSearchValue('');
-    setSubmittedSearch('');
-    setSelectedType('');
-    setListError(null);
-    setPage(FIRST_PAGE);
-  };
+  const handleReset = useCallback(() => {
+    dispatch(pokemonCatalogActions.reset());
+  }, []);
 
-  const handlePrevious = () => {
-    setPage((currentPage) => Math.max(currentPage - PAGE_STEP, FIRST_PAGE));
-  };
+  const handlePrevious = useCallback(() => {
+    dispatch(pokemonCatalogActions.goPrevious());
+  }, []);
 
-  const handleNext = () => {
-    setPage((currentPage) => Math.min(currentPage + PAGE_STEP, totalPages || currentPage));
-  };
+  const handleNext = useCallback(() => {
+    dispatch(pokemonCatalogActions.goNext(totalPages));
+  }, [totalPages]);
 
   return {
-    pokemon,
-    types,
-    searchValue,
-    selectedType,
-    page,
-    totalCount,
-    loading,
-    loadingTypes,
-    listError,
-    typeError,
+    ...state,
     searchMode,
     setSearchValue,
     handleSearchSubmit,
